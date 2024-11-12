@@ -1,0 +1,16 @@
+[package]
+name = "datahub"
+version = "0.1.0"
+edition = "2021"
+documentation = "https://docs.rs/datahub"
+repository = "https://github.com/constlhq/datahub-sdk-rust"
+authors = ["constlhq <const.lhq@gmail.com>"]
+license = "MIT"
+keywords = ["aliyun","datahub"]
+[dependencies]
+anyhow = "1.0.93"
+base64 = "0.22.1"
+log = "0.4.22"
+reqwest = "0.12.9"
+thiserror = "2.0.3"
+tokio = { version = "1.41.1", features = ["rt"] }
