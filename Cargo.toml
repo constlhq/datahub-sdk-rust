@@ -6,12 +6,27 @@ documentation = "https://docs.rs/datahub"
 repository = "https://github.com/constlhq/datahub-sdk-rust"
 authors = ["constlhq <const.lhq@gmail.com>"]
 license = "MIT"
-keywords = ["aliyun","datahub"]
-description = "PlaceHolder for Simple Alibaba Cloud DataHub Client in Rust"
+keywords = ["aliyun", "datahub"]
+description = "Simple Alibaba Cloud DataHub Client in Rust"
 [dependencies]
 anyhow = "1.0.93"
 base64 = "0.22.1"
+hmac = "0.12.1"
+http = "1.1.0"
+http-body = "1.0.1"
 log = "0.4.22"
-reqwest = "0.12.9"
+reqwest = { version = "0.12.9", features = ["default", "json", "zstd", "deflate"] }
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.132"
+sha1 = "0.10.6"
 thiserror = "2.0.3"
 tokio = { version = "1.41.1", features = ["rt"] }
+tower-http = { version = "0.6.1", features = ["set-header" ] }
+bytes = "1.8.0"
+async-trait = "0.1.83"
+tower = "0.5.1"
+http-body-util = "0.1.2"
+chrono = { version = "0.4.38", features = ["alloc"] }
+tower-layer = "0.3.3"
+tower-service = "0.3.3"
+url = "2.5.3"
