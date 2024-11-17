@@ -31,6 +31,6 @@ USE AT YOUR OWN RISK!
 
 ### TODO
 
--[ ] Protobuf support
--[ ] LZ4 Compress support
--[ ] Http proxy support
+- [ ] Protobuf support
+- [ ] LZ4 Compress support
+- [ ] Http proxy support
