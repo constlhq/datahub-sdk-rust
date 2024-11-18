@@ -5,7 +5,7 @@ use crate::errors::DHResult;
 use crate::middleware::set_header::{SetRequestHeader, SetRequestHeaderLayer};
 use crate::models::cursor::QueryCursorResponse;
 use crate::models::project::{GetProjectResponse, ListProjectResponse};
-use crate::models::record::{ReadDataResponse, WriteDataResponse};
+use crate::models::record::{FieldType, ReadDataResponse, WriteDataResponse};
 use crate::models::shard::{ListShardResponse, MergeShardResponse, SplitShardResponse};
 use crate::models::subscription::{
     CreateSubscriptionRes, GetSubscriptionRes, ListSubscriptionRes, SubscriptionOffset,
@@ -14,7 +14,7 @@ use crate::models::subscription::{
 use crate::models::topic::{GetTopicResponse, ListTopicResponse};
 use crate::models::EmptyResponse;
 use crate::payload::comment::UpdateCommentPayload;
-use crate::payload::cursor::QueryCursorPayload;
+use crate::payload::cursor::{CursorType, QueryCursorPayload};
 use crate::payload::data::{ReadDataPayload, WriteDataPayload};
 use crate::payload::projects::CreateProjectPayload;
 use crate::payload::shards::{MergeShardPayload, SplitShardPayload};
@@ -111,12 +111,13 @@ impl DatahubClientTrait for DatahubJsonClient {
     async fn create_project(
         &mut self,
         project_name: &str,
-        create_project_payload: &CreateProjectPayload,
+        comment: &str,
     ) -> DHResult<EmptyResponse> {
         let path = format!("/projects/{project_name}");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.post(url);
-        request_builder = request_builder.json(create_project_payload);
+        let create_project_payload = CreateProjectPayload::new(comment);
+        request_builder = request_builder.json(&create_project_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_empty_response!(res)
@@ -134,13 +135,14 @@ impl DatahubClientTrait for DatahubJsonClient {
     async fn update_project(
         &mut self,
         project_name: &str,
-        create_project_payload: &CreateProjectPayload,
+        comment: &str,
     ) -> DHResult<EmptyResponse> {
         let path = format!("/projects/{project_name}");
         let url = self.endpoint.join(&path)?;
 
         let mut request_builder = self.client.put(url);
-        request_builder = request_builder.json(create_project_payload);
+        let create_project_payload: CreateProjectPayload = CreateProjectPayload::new(comment);
+        request_builder = request_builder.json(&create_project_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_empty_response!(res)
@@ -164,7 +166,7 @@ impl DatahubClientTrait for DatahubJsonClient {
         let path = format!("/projects/{project_name}/topics/{topic_name}");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.post(url);
-        request_builder = request_builder.json(create_topic_payload);
+        request_builder = request_builder.json(&create_topic_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_empty_response!(res)
@@ -197,12 +199,13 @@ impl DatahubClientTrait for DatahubJsonClient {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        update_comment_payload: &UpdateCommentPayload,
+        comment: &str,
     ) -> DHResult<EmptyResponse> {
         let path = format!("/projects/{project_name}/topics/{topic_name}");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.put(url);
-        request_builder = request_builder.json(update_comment_payload);
+        let update_comment_payload = UpdateCommentPayload { comment };
+        request_builder = request_builder.json(&update_comment_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_empty_response!(res)
@@ -226,12 +229,15 @@ impl DatahubClientTrait for DatahubJsonClient {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        append_field_payload: &AppendFieldPayload,
+        field_name: &str,
+        field_type: FieldType,
     ) -> DHResult<EmptyResponse> {
         let path = format!("/projects/{project_name}/topics/{topic_name}");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.post(url);
-        request_builder = request_builder.json(append_field_payload);
+        let append_field_payload: AppendFieldPayload =
+            AppendFieldPayload::new(field_name, field_type);
+        request_builder = request_builder.json(&append_field_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_empty_response!(res)
@@ -255,12 +261,14 @@ impl DatahubClientTrait for DatahubJsonClient {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        split_shard_payload: &SplitShardPayload,
+        shard_id: &str,
+        split_key: &str,
     ) -> DHResult<SplitShardResponse> {
         let path = format!("/projects/{project_name}/topics/{topic_name}/shards");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.put(url);
-        request_builder = request_builder.json(split_shard_payload);
+        let split_shard_payload = SplitShardPayload::new(shard_id, split_key);
+        request_builder = request_builder.json(&split_shard_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_json_response!(res, SplitShardResponse)
@@ -271,29 +279,33 @@ impl DatahubClientTrait for DatahubJsonClient {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        merge_shard_payload: &MergeShardPayload,
+        shard_id: &str,
+        adjacent_shard_id: &str,
     ) -> DHResult<MergeShardResponse> {
         let path = format!("/projects/{project_name}/topics/{topic_name}/shards");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.put(url);
-        request_builder = request_builder.json(merge_shard_payload);
+        let merge_shard_payload = MergeShardPayload::new(shard_id, adjacent_shard_id);
+        request_builder = request_builder.json(&merge_shard_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_json_response!(res, MergeShardResponse)
     }
 
     /// 查询数据Cursor
-    async fn query_data_cursor(
+    async fn get_cursor(
         &mut self,
         project_name: &str,
         topic_name: &str,
         shard_id: &str,
-        query_cursor_payload: &QueryCursorPayload,
+        cursor_type: CursorType,
+        parameter: i64,
     ) -> DHResult<QueryCursorResponse> {
         let path = format!("/projects/{project_name}/topics/{topic_name}/shards/{shard_id}");
         let url = self.endpoint.join(&path)?;
         let mut request_builder = self.client.post(url);
-        request_builder = request_builder.json(query_cursor_payload);
+        let query_cursor_payload = QueryCursorPayload::new(cursor_type, parameter);
+        request_builder = request_builder.json(&query_cursor_payload);
         let request = request_builder.build()?;
         let res = self.service.call(request).await?;
         parse_json_response!(res, QueryCursorResponse)

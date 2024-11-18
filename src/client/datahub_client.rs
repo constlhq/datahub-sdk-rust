@@ -1,7 +1,7 @@
 use crate::errors::DHResult;
 use crate::models::cursor::QueryCursorResponse;
 use crate::models::project::{GetProjectResponse, ListProjectResponse};
-use crate::models::record::{ReadDataResponse, WriteDataResponse};
+use crate::models::record::{FieldType, ReadDataResponse, WriteDataResponse};
 use crate::models::shard::{ListShardResponse, MergeShardResponse, SplitShardResponse};
 use crate::models::subscription::{
     CreateSubscriptionRes, GetSubscriptionRes, ListSubscriptionRes, SubscriptionOffset,
@@ -9,12 +9,9 @@ use crate::models::subscription::{
 };
 use crate::models::topic::{GetTopicResponse, ListTopicResponse};
 use crate::models::EmptyResponse;
-use crate::payload::comment::UpdateCommentPayload;
-use crate::payload::cursor::QueryCursorPayload;
+use crate::payload::cursor::CursorType;
 use crate::payload::data::{ReadDataPayload, WriteDataPayload};
-use crate::payload::projects::CreateProjectPayload;
-use crate::payload::shards::{MergeShardPayload, SplitShardPayload};
-use crate::payload::topics::{AppendFieldPayload, CreateTopicPayload};
+use crate::payload::topics::CreateTopicPayload;
 use async_trait::async_trait;
 use std::collections::HashMap;
 
@@ -27,7 +24,7 @@ pub trait DatahubClientTrait {
     async fn create_project(
         &mut self,
         project_name: &str,
-        create_project_payload: &CreateProjectPayload,
+        comment: &str,
     ) -> DHResult<EmptyResponse>;
     /// 查询Project
     async fn get_project(&mut self, project_name: &str) -> DHResult<GetProjectResponse>;
@@ -36,7 +33,7 @@ pub trait DatahubClientTrait {
     async fn update_project(
         &mut self,
         project_name: &str,
-        create_project_payload: &CreateProjectPayload,
+        comment: &str,
     ) -> DHResult<EmptyResponse>;
     /// 删除Project
     async fn delete_project(&mut self, project_name: &str) -> DHResult<EmptyResponse>;
@@ -64,7 +61,7 @@ pub trait DatahubClientTrait {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        update_comment_payload: &UpdateCommentPayload,
+        comment: &str,
     ) -> DHResult<EmptyResponse>;
 
     /// 删除Topic
@@ -79,7 +76,8 @@ pub trait DatahubClientTrait {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        append_field_payload: &AppendFieldPayload,
+        field_name: &str,
+        field_type: FieldType,
     ) -> DHResult<EmptyResponse>;
 
     ///获取Shard列表
@@ -94,7 +92,8 @@ pub trait DatahubClientTrait {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        split_shard_payload: &SplitShardPayload,
+        shard_id: &str,
+        split_key: &str,
     ) -> DHResult<SplitShardResponse>;
 
     ///合并Shard
@@ -102,16 +101,18 @@ pub trait DatahubClientTrait {
         &mut self,
         project_name: &str,
         topic_name: &str,
-        merge_shard_payload: &MergeShardPayload,
+        shard_id: &str,
+        adjacent_shard_id: &str,
     ) -> DHResult<MergeShardResponse>;
 
     /// 查询数据Cursor
-    async fn query_data_cursor(
+    async fn get_cursor(
         &mut self,
         project_name: &str,
         topic_name: &str,
         shard_id: &str,
-        query_cursor_payload: &QueryCursorPayload,
+        cursor_type: CursorType,
+        parameter: i64,
     ) -> DHResult<QueryCursorResponse>;
 
     /// 写入数据
